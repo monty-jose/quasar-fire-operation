@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 namespace QuasarFireOperation.Models
 {
-    public class Position
+    public class ResponseDTO
     {
-        public double x { get; set; }
-        public double y { get; set; }
+
+        public PositionDTO position { get; set; }
+        public string message { get; set; }
+        
     }
+}
