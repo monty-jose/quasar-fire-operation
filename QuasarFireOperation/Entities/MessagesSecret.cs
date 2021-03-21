@@ -7,7 +7,6 @@ namespace QuasarFireOperation.Entities
     public class MessagesSecret
     {
         public int id { get; set; }
-        public int message_set_id { get; set; }
 
         public int satelite_id { get; set; }
 

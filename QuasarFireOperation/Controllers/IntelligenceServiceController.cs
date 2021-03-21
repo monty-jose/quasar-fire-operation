@@ -19,22 +19,32 @@ namespace QuasarFireOperation.Controllers
         }
         
         [HttpPost("topSecret")]
-        public ActionResult<ResponseDTO> Post([FromBody] List<SatelliteDTO> satellite)
+        public ActionResult<ResponseDTO> Post([FromBody] SatellitesListDTO requestSatelliteList)
         {
-            ResponseDTO messageResponse = new ResponseDTO();
-            if (satellite == null)
+            if (requestSatelliteList == null)
             {
                 return NotFound();
             }
 
-            messageResponse.position.x = 150;
-            messageResponse.position.x = 80;
-            messageResponse.message = "Vamos funciono";
-            return Ok(messageResponse);
+            ResultDTO data = operationsService.TopSecretResponse(requestSatelliteList);
+
+            if (data.result)
+            {
+                return Ok(data.response);
+            }
+            else
+            {
+                return NotFound();
+            }
+
+            data.response.position.x = 150;
+            data.response.position.x = 80;
+            data.response.message = "Vamos funciono";
+            return Ok(data.response);
         }
 
         [HttpPost("topSecret_Split")]
-        public ActionResult topSecret_Split([FromBody] SatelliteDTO satellite)
+        public ActionResult topSecret_Split([FromBody] SatelliteMessageDTO satellite)
         {
             return Ok("Post Top Secrete");
             //return NotFound();
@@ -70,6 +80,12 @@ namespace QuasarFireOperation.Controllers
         public IEnumerable<MessagesSecret> GetMessage ()
         {
             return operationsService.Message();
+        }
+
+        [HttpGet("GetTest")]
+        public string GetTest()
+        {
+            return "Hola entro";
         }
 
     }

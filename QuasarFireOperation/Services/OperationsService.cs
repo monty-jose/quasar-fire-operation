@@ -20,6 +20,32 @@ namespace QuasarFireOperation.Services
             this.dataAccess =  dataAccess;
         }
 
+        public ResultDTO TopSecretResponse(SatellitesListDTO requestSatelliteList)
+        {
+            ResultDTO response = new ResultDTO();
+
+            if (IsValid(requestSatelliteList))
+            {
+                foreach (SatelliteMessageDTO satelliteMenssage in requestSatelliteList.SatellitesList)
+                {
+                    //buscar en bd el id del satelite
+                    // guardo el mensaje en bs de datos y retorno el id para despues actualizar el campo process
+
+                    //Si es el ultimo elemento de la lista
+                        //ejecturamos getMessage
+                        //ejecutamos getLocation
+                        //Actualizamos base de datos messages con process en 1 
+                }
+            }
+            else
+            {
+                response.result = false;
+                response.error = "Mensaje invalido";
+            }
+
+            return response;
+        }
+
         public IEnumerable<MessagesSecret> Message()
         {
             return dataAccess.GetAllMessage();
@@ -50,9 +76,7 @@ namespace QuasarFireOperation.Services
             {
                 msg        = item.message_array.Split(',');
                 msgCompare = UtilService.WordsCompare(messages, msg);
-            }
-
-            //string msgReturn = String.IsNullOrEmpty(msgCompare) == null ? UtilService.FormatText(msgCompare): String.Empty;
+            }           
 
             string msgReturn = UtilService.FormatText(msgCompare);
 
@@ -70,6 +94,12 @@ namespace QuasarFireOperation.Services
             return position;
 
         }
-        
+
+
+        public bool IsValid(SatellitesListDTO requestSatelliteList)
+        {
+
+            return true;
+        }
     }
 }

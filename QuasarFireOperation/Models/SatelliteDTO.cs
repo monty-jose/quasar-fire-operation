@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace QuasarFireOperation.Models
 {
-    public class SatelliteDTO
+    public class SatelliteMessageDTO
     {
         public string name { get; set; }
         public double distance { get; set; }

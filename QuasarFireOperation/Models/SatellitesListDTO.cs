@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 
 namespace QuasarFireOperation.Models
 {
-    public class ResponseDTO
+    public class SatellitesListDTO
     {
-        public PositionDTO position { get; set; }
-        public string message { get; set; }
-        
+        public List<SatelliteMessageDTO> SatellitesList { get; set; }
     }
 }
