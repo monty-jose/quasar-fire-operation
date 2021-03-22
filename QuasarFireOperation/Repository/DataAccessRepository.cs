@@ -48,6 +48,7 @@ namespace QuasarFireOperation.Repository
 
             return messagesList;
         }
+
         public List<MessageDTO> GetLastMessages( int countMessage)
         {
             List<MessageDTO> lastMenssages = new List<MessageDTO>();

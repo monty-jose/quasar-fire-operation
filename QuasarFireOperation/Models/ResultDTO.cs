@@ -9,5 +9,6 @@ namespace QuasarFireOperation.Models
     {        
         public bool error { get; set; }
         public ResponseDTO response { get; set; }
+        public int statusResponse { get; set; }
     }
 }

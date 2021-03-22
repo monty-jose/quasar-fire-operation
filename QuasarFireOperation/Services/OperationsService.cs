@@ -23,53 +23,23 @@ namespace QuasarFireOperation.Services
 
         public ResultDTO TopSecretResponse(List<SatelliteMessageDTO> requestSatelliteList)
         {
-            ResultDTO result     = new ResultDTO();           
+            ResultDTO result = new ResultDTO();
 
             if (IsValidRequest(requestSatelliteList))
             {
-                PositionDTO location = null;
-                int statusResponse   = 0;
-                string message       = String.Empty;
-
                 List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(requestSatelliteList);
              
                 if (messagesSecretIdList.Count == 3)
                 {
-                    string[] firstMessage = requestSatelliteList[0].message;
-                    message               = GetMessage(firstMessage);
-
-                    if (!String.IsNullOrEmpty(message))
-                    {                       
-                        location  = GetLocation(requestSatelliteList[0].distance);
-
-                        if (location != null)
-                        {   
-                            result.response          = new ResponseDTO();
-                            result.response.message  = message;
-                            result.response.position = location;
-                            result.error             = false;
-                            statusResponse           = Constant.StatusResponse.SUCCESS_SENT;
-                        }
-                        else
-                        {
-                            result.error   = true;
-                            statusResponse = Constant.StatusResponse.ERROR_LOCATION;
-                        }
-
-                    }
-                    else 
-                    {
-                        result.error   = true;
-                        statusResponse = Constant.StatusResponse.ERROR_LOCATION;
-                    }
+                    result = FindMessageLocation(requestSatelliteList[0]);
                 }
                 else 
                 {
-                    result.error    = true;
-                    statusResponse  = Constant.StatusResponse.ERROR_PETICION;
+                    result.error           = true;
+                    result.statusResponse  = Constant.StatusResponse.ERROR_PETICION;
                 }
 
-                ResponseEntity responseEntity = dataAccess.SaveResponse(location, message, statusResponse);
+                ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
                 dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
                 
             }
@@ -81,21 +51,101 @@ namespace QuasarFireOperation.Services
             return result;
         }
 
-        public ResponseDTO MessageResponse()
+        public ResultDTO TopSecretSplitPost(TopSecretSplitRequestDTO requestSatellite, string satellite_name)
         {
-            ResponseDTO response = new ResponseDTO();
+            ResultDTO result = new ResultDTO();
 
-            List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages(1);
+            try
+            {
+                List<SatelliteMessageDTO> satelliteMessageList = new List<SatelliteMessageDTO>();
+                satelliteMessageList.Add(new SatelliteMessageDTO()
+                {
+                    name     = satellite_name,
+                    distance = requestSatellite.distance,
+                    message  = requestSatellite.message
+                });
 
-            string [] lastMessage = lastMessagesList[0].message_array.Split(',');
+                List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(satelliteMessageList);
+                result.error = false;
 
-            PositionDTO position = this.GetLocation(lastMessagesList[0].distances);
-            response.message     = this.GetMessage(lastMessage);
-            response.position    = position;
+            }
+            catch (Exception)
+            {
+                result.error = true;
+            }           
 
-            return response;
+            return result;                
         }
 
+        public ResultDTO TopSecretSplitGet()
+        {
+            ResultDTO result                  = new ResultDTO();            
+            List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages(1);
+
+            if (lastMessagesList.Count > 0)
+            {
+                Satellites satellite = dataAccess.GetSatelliteById(lastMessagesList[0].satelite_id);
+                if (satellite != null)
+                {
+                    SatelliteMessageDTO satelliteMessage = new SatelliteMessageDTO()
+                    {
+                        name     = satellite.name,
+                        distance = lastMessagesList[0].distances,
+                        message  = lastMessagesList[0].message_array.Split(',')
+                    };
+
+                    result = FindMessageLocation(satelliteMessage);
+
+                    //VERIFICAR ESTOOOOO COMO ACTUALIZAAR LOS MENSAJES GUARDADOS
+                    ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
+                    dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
+                }
+                else
+                    result.error = true;
+            }
+            else
+            {
+                //consultamos la tabla response
+                result.error = true;
+            }
+
+            return result;
+        }
+
+        public ResultDTO FindMessageLocation(SatelliteMessageDTO satelliteMessage)
+        {
+            ResultDTO result = new ResultDTO();
+
+            string[] firstMessage = satelliteMessage.message;
+            string message        = GetMessage(firstMessage);
+
+            if (!String.IsNullOrEmpty(message))
+            {
+                PositionDTO location = GetLocation(satelliteMessage.distance);
+
+                if (location != null)
+                {
+                    result.response          = new ResponseDTO();
+                    result.response.message  = message;
+                    result.response.position = location;
+                    result.error             = false;
+                    result.statusResponse    = Constant.StatusResponse.SUCCESS_SENT;
+                }
+                else
+                {
+                    result.error          = true;
+                    result.statusResponse = Constant.StatusResponse.ERROR_LOCATION;
+                }
+
+            }
+            else
+            {
+                result.error = true;
+                result.statusResponse = Constant.StatusResponse.ERROR_LOCATION;
+            }
+            return result;
+        }
+               
         public string GetMessage(string[] messages)
         {
             string[] msg ;

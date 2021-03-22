@@ -2,6 +2,7 @@
 using QuasarFireOperation.Entities;
 using QuasarFireOperation.Models;
 using QuasarFireOperation.Services;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -23,8 +24,34 @@ namespace QuasarFireOperation.Controllers
         {
             if (requestSatelliteList != null)
             {
-                ResultDTO data = operationsService.TopSecretResponse(requestSatelliteList.satellites);
-                
+                if (operationsService.IsValidRequest(requestSatelliteList.satellites))
+                {
+                    ResultDTO data = operationsService.TopSecretResponse(requestSatelliteList.satellites);
+
+                    if (!data.error)
+                    {
+                        return Ok(data.response);
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+                else
+                    return NotFound();
+            }
+            else
+                return NotFound();
+
+        }
+
+        [HttpPost("topSecret_Split/{satellite_name}")]
+        public ActionResult TopSecret_Split([FromBody] TopSecretSplitRequestDTO requestSatellite, string satellite_name)
+        {
+            if (requestSatellite != null && !String.IsNullOrEmpty(satellite_name))
+            {
+                ResultDTO data = operationsService.TopSecretSplitPost(requestSatellite, satellite_name);
+
                 if (!data.error)
                 {
                     return Ok(data.response);
@@ -36,40 +63,21 @@ namespace QuasarFireOperation.Controllers
             }
             else
                 return NotFound();
-
-        }
-
-        [HttpPost("topSecret_Split/{satellite_name}")]
-        public ActionResult topSecret_Split([FromBody] TopSecretSplitRequestDTO requestSatellite, string satellite_name)
-        {
-            return Ok("Post Top Secrete Split: "+ satellite_name);
-            //return NotFound();
         }
         
         [HttpGet("topSecret_Split")]
-        public ActionResult Get()
+        public ActionResult TopSecret_SplitGet()
         {
-            ResponseDTO messageResponse = new ResponseDTO();
+            ResultDTO data = operationsService.TopSecretSplitGet();
 
-            try
+            if (!data.error)
             {
-                messageResponse = operationsService.MessageResponse();
-
-                if (messageResponse != null)
-                {
-                    return Ok(messageResponse);
-                }
-                else
-                {
-                    return NotFound();
-                }
-                
+                return Ok(data.response);
             }
-            catch (System.Exception ex)
+            else
             {
-                return NotFound(ex.Message);
-                throw;
-            }           
+                return NotFound();
+            }
         }
 
         [HttpGet("GetTest")]
