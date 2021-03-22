@@ -19,34 +19,30 @@ namespace QuasarFireOperation.Controllers
         }
         
         [HttpPost("topSecret")]
-        public ActionResult<ResponseDTO> Post([FromBody] SatellitesListDTO requestSatelliteList)
+        public ActionResult<ResponseDTO> Post([FromBody] TopSecretRequestDTO requestSatelliteList)
         {
-            if (requestSatelliteList == null)
+            if (requestSatelliteList != null)
             {
-                return NotFound();
-            }
-
-            ResultDTO data = operationsService.TopSecretResponse(requestSatelliteList);
-
-            if (data.result)
-            {
-                return Ok(data.response);
+                ResultDTO data = operationsService.TopSecretResponse(requestSatelliteList.satellites);
+                
+                if (!data.error)
+                {
+                    return Ok(data.response);
+                }
+                else
+                {
+                    return NotFound();
+                }
             }
             else
-            {
                 return NotFound();
-            }
 
-            data.response.position.x = 150;
-            data.response.position.x = 80;
-            data.response.message = "Vamos funciono";
-            return Ok(data.response);
         }
 
-        [HttpPost("topSecret_Split")]
-        public ActionResult topSecret_Split([FromBody] SatelliteMessageDTO satellite)
+        [HttpPost("topSecret_Split/{satellite_name}")]
+        public ActionResult topSecret_Split([FromBody] TopSecretSplitRequestDTO requestSatellite, string satellite_name)
         {
-            return Ok("Post Top Secrete");
+            return Ok("Post Top Secrete Split: "+ satellite_name);
             //return NotFound();
         }
         
@@ -74,12 +70,6 @@ namespace QuasarFireOperation.Controllers
                 return NotFound(ex.Message);
                 throw;
             }           
-        }
-
-        [HttpGet("GetMessage")]
-        public IEnumerable<MessagesSecret> GetMessage ()
-        {
-            return operationsService.Message();
         }
 
         [HttpGet("GetTest")]

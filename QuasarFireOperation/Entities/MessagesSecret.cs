@@ -13,9 +13,13 @@ namespace QuasarFireOperation.Entities
         public double distance { get; set; }
 
         public string message { get; set; }
+        
+        public int? response_id { get; set; }
 
         public DateTime date_process { get; set; }
 
         public decimal process { get; set; }
+
+        
     }
 }

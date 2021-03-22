@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using QuasarFireOperation.Common;
 using QuasarFireOperation.Context;
 using QuasarFireOperation.Entities;
 using QuasarFireOperation.Models;
@@ -20,35 +21,64 @@ namespace QuasarFireOperation.Services
             this.dataAccess =  dataAccess;
         }
 
-        public ResultDTO TopSecretResponse(SatellitesListDTO requestSatelliteList)
+        public ResultDTO TopSecretResponse(List<SatelliteMessageDTO> requestSatelliteList)
         {
-            ResultDTO response = new ResultDTO();
+            ResultDTO result     = new ResultDTO();           
 
-            if (IsValid(requestSatelliteList))
+            if (IsValidRequest(requestSatelliteList))
             {
-                foreach (SatelliteMessageDTO satelliteMenssage in requestSatelliteList.SatellitesList)
-                {
-                    //buscar en bd el id del satelite
-                    // guardo el mensaje en bs de datos y retorno el id para despues actualizar el campo process
+                PositionDTO location = null;
+                int statusResponse   = 0;
+                string message       = String.Empty;
 
-                    //Si es el ultimo elemento de la lista
-                        //ejecturamos getMessage
-                        //ejecutamos getLocation
-                        //Actualizamos base de datos messages con process en 1 
+                List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(requestSatelliteList);
+             
+                if (messagesSecretIdList.Count == 3)
+                {
+                    string[] firstMessage = requestSatelliteList[0].message;
+                    message               = GetMessage(firstMessage);
+
+                    if (!String.IsNullOrEmpty(message))
+                    {                       
+                        location  = GetLocation(requestSatelliteList[0].distance);
+
+                        if (location != null)
+                        {   
+                            result.response          = new ResponseDTO();
+                            result.response.message  = message;
+                            result.response.position = location;
+                            result.error             = false;
+                            statusResponse           = Constant.StatusResponse.SUCCESS_SENT;
+                        }
+                        else
+                        {
+                            result.error   = true;
+                            statusResponse = Constant.StatusResponse.ERROR_LOCATION;
+                        }
+
+                    }
+                    else 
+                    {
+                        result.error   = true;
+                        statusResponse = Constant.StatusResponse.ERROR_LOCATION;
+                    }
                 }
+                else 
+                {
+                    result.error    = true;
+                    statusResponse  = Constant.StatusResponse.ERROR_PETICION;
+                }
+
+                ResponseEntity responseEntity = dataAccess.SaveResponse(location, message, statusResponse);
+                dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
+                
             }
             else
             {
-                response.result = false;
-                response.error = "Mensaje invalido";
+                result.error = true;
             }
 
-            return response;
-        }
-
-        public IEnumerable<MessagesSecret> Message()
-        {
-            return dataAccess.GetAllMessage();
+            return result;
         }
 
         public ResponseDTO MessageResponse()
@@ -58,47 +88,64 @@ namespace QuasarFireOperation.Services
             List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages(1);
 
             string [] lastMessage = lastMessagesList[0].message_array.Split(',');
-            
-            response.message    = this.GetMessage(lastMessage);
-            response.position   = this.GetLocation(lastMessagesList[0].distances);
+
+            PositionDTO position = this.GetLocation(lastMessagesList[0].distances);
+            response.message     = this.GetMessage(lastMessage);
+            response.position    = position;
 
             return response;
         }
 
         public string GetMessage(string[] messages)
         {
-            string[] msg ;            
-            string[] msgCompare = new string[messages.Length]; //tomo el tamaño del mensaje que recibo
+            string[] msg ;
+            string msgReturn    = String.Empty;
+            string[] msgCompare = messages; //tomo el tamaño del mensaje que recibo
 
             List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages(2);
 
-            foreach (var item in lastMessagesList)
+            if (lastMessagesList.Count > 1)
             {
-                msg        = item.message_array.Split(',');
-                msgCompare = UtilService.WordsCompare(messages, msg);
-            }           
+                foreach (var item in lastMessagesList)
+                {
+                    msg        = item.message_array.Split(',');
+                    msgCompare = UtilService.WordsCompare(msgCompare, msg);
+                }
 
-            string msgReturn = UtilService.FormatText(msgCompare);
-
+                msgReturn = UtilService.FormatText(msgCompare);
+            } 
             return msgReturn;
         }
 
         public PositionDTO GetLocation(double distance)
         {
-            //PositionDTO position = UtilService.getLocationByTrilateration();
+            InformationMessageSatelliteDTO infoFirstSatellite = dataAccess.GetSatelliteLocation(distance);
+            PositionDTO shipPosition = null;
 
-            PositionDTO position = new PositionDTO();
-            position.x = 850;
-            position.y = 500;
+            if (infoFirstSatellite != null)
+            {
+                List<InformationMessageSatelliteDTO> infoAllSatelliteList = dataAccess.GetLastSatellite(2, infoFirstSatellite.id);
+                infoAllSatelliteList.Add(infoFirstSatellite);
 
-            return position;
+                if (infoAllSatelliteList.Count == 3)
+                {
+                    shipPosition = UtilService.GetLocationByTrilateration(infoAllSatelliteList[0], infoAllSatelliteList[1], infoAllSatelliteList[2]);                    
+                }
+            }
+
+            return shipPosition;
 
         }
 
-
-        public bool IsValid(SatellitesListDTO requestSatelliteList)
+        public bool IsValidRequest(List<SatelliteMessageDTO> requestSatelliteList)
         {
-
+            foreach (var item in requestSatelliteList)
+            {
+                if (item.distance == null)
+                    return false;
+                if (item.message == null)
+                    return false;                
+            }
             return true;
         }
     }

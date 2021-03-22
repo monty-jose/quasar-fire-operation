@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace QuasarFireOperation.Models
 {
-    public class SatellitesListDTO
+    public class TopSecretSplitRequestDTO
     {
-        public List<SatelliteMessageDTO> SatellitesList { get; set; }
+        public double distance { get; set; }
+        public string[] message { get; set; }
     }
 }

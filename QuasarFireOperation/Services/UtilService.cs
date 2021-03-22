@@ -5,17 +5,17 @@ namespace QuasarFireOperation.Services
 {
     public static class UtilService
     {
-        public static PositionDTO getLocationByTrilateration(PositionDTO coordinateOne, double distanceOne, PositionDTO coordinateTwo, double distanceTwo, PositionDTO coordinateThree, double distanceThree)
+        public static PositionDTO GetLocationByTrilateration(InformationMessageSatelliteDTO satelliteOne, InformationMessageSatelliteDTO satelliteTwo, InformationMessageSatelliteDTO satelliteThree)
         {
             PositionDTO shipLocation = new PositionDTO();
 
-            double A = 2 * coordinateTwo.x - 2 * coordinateOne.x;
-            double B = 2 * coordinateTwo.y - 2 * coordinateOne.y;
-            double C = (Math.Pow(distanceOne, 2.0) - Math.Pow(distanceTwo, 2.0) - Math.Pow(coordinateOne.x, 2.0) + Math.Pow(coordinateTwo.x, 2.0) - Math.Pow(coordinateOne.y, 2.0) + Math.Pow(coordinateTwo.y, 2.0));
+            double A = 2 * satelliteTwo.x_position - 2 * satelliteOne.x_position;
+            double B = 2 * satelliteTwo.y_position - 2 * satelliteOne.y_position;
+            double C = (Math.Pow(satelliteOne.distance, 2.0) - Math.Pow(satelliteTwo.distance, 2.0) - Math.Pow(satelliteOne.x_position, 2.0) + Math.Pow(satelliteTwo.x_position, 2.0) - Math.Pow(satelliteOne.y_position, 2.0) + Math.Pow(satelliteTwo.y_position, 2.0));
 
-            double D = 2 * coordinateThree.x - 2 * coordinateTwo.x;
-            double E = 2 * coordinateThree.y - 2 * coordinateTwo.y;
-            double F = (Math.Pow(distanceTwo, 2) - Math.Pow(distanceThree, 2) - Math.Pow(coordinateTwo.x, 2) + Math.Pow(coordinateThree.x, 2) - Math.Pow(coordinateTwo.y, 2) + Math.Pow(coordinateThree.y, 2));
+            double D = 2 * satelliteThree.x_position - 2 * satelliteTwo.x_position;
+            double E = 2 * satelliteThree.y_position - 2 * satelliteTwo.y_position;
+            double F = (Math.Pow(satelliteTwo.distance, 2) - Math.Pow(satelliteThree.distance, 2) - Math.Pow(satelliteTwo.x_position, 2) + Math.Pow(satelliteThree.x_position, 2) - Math.Pow(satelliteTwo.y_position, 2) + Math.Pow(satelliteThree.y_position, 2));
 
             shipLocation.x = (C * E - F * B) / (E * A - B * D);
             shipLocation.y = (C * D - A * F) / (B * D - A * E);
@@ -23,12 +23,12 @@ namespace QuasarFireOperation.Services
             return shipLocation;
         }
 
-        public static double subtractEquation(PositionDTO positionOne, float distanceOne, PositionDTO positionTwo, float distanceTwo)
+        public static double SubtractEquation(PositionDTO positionOne, float distanceOne, PositionDTO positionTwo, float distanceTwo)
         {
             return Math.Pow(distanceOne, 2.0) - Math.Pow(distanceTwo, 2.0) - Math.Pow(positionOne.x, 2.0) + Math.Pow(positionTwo.x, 2.0) - Math.Pow(positionOne.y, 2.0) + Math.Pow(positionTwo.y, 2.0);
         }
 
-        public static double distanceCalculate(PositionDTO positionOne, PositionDTO positionTwo)
+        public static double DistanceCalculate(PositionDTO positionOne, PositionDTO positionTwo)
         {
             double distance = Math.Sqrt(Math.Pow(positionTwo.x - (positionOne.x), 2) + Math.Pow(positionTwo.y - (positionOne.y), 2));
 
@@ -63,19 +63,27 @@ namespace QuasarFireOperation.Services
 
             foreach (string word in messages)
             {
-                text += word + " "; //
+                if (!String.IsNullOrEmpty(word))
+                    text += word + " ";
+                else
+                    return String.Empty;
             }
 
             return text.Trim();
         }
 
-        public static string arrayToString(string[] arrayString)
+        public static string ArrayToString(string[] arrayString)
         {
             string valueReturn = String.Empty;
 
-            foreach (string value in arrayString)
+            for (int i = 0; i < arrayString.Length; i++)
             {
-                valueReturn += String.IsNullOrEmpty(valueReturn) ? value : "," + value;
+                string value = arrayString[i];
+
+                if (i+1 == arrayString.Length)
+                    valueReturn += value;
+                else
+                    valueReturn += value+",";
             }
 
             return valueReturn;

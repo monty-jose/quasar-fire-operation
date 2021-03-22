@@ -15,7 +15,8 @@ namespace QuasarFireOperation.Context
         }
 
         public DbSet<Satellites> Satellites { get; set; }
-        public DbSet<MessagesSecret> Messages { get; set; }
+        public DbSet<MessagesSecret> MessagesSecret { get; set; }
+        public DbSet<ResponseEntity> ResponseEntity { get; set; }
 
     }
 }
