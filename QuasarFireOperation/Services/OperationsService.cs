@@ -25,25 +25,33 @@ namespace QuasarFireOperation.Services
         {
             ResultDTO result = new ResultDTO();
 
-            if (IsValidRequest(requestSatelliteList))
+            try
             {
-                List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(requestSatelliteList);
-             
-                if (messagesSecretIdList.Count == 3)
+                if (IsValidRequest(requestSatelliteList))
                 {
-                    result = FindMessageLocation(requestSatelliteList[0]);
+                    List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(requestSatelliteList);
+
+                    if (messagesSecretIdList.Count == 3)
+                    {
+                        result = FindMessageLocation(requestSatelliteList[0]);
+                    }
+                    else
+                    {
+                        result.error = true;
+                        result.statusResponse = (int)Constant.StatusResponse.ERROR_PETICION;
+                    }
+
+                    ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
+                    dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
+
                 }
-                else 
+                else
                 {
-                    result.error           = true;
-                    result.statusResponse  = Constant.StatusResponse.ERROR_PETICION;
+                    result.error = true;
                 }
 
-                ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
-                dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
-                
             }
-            else
+            catch (Exception)
             {
                 result.error = true;
             }
@@ -79,36 +87,38 @@ namespace QuasarFireOperation.Services
 
         public ResultDTO TopSecretSplitGet()
         {
-            ResultDTO result                  = new ResultDTO();            
-            List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages(1);
+            ResultDTO result = new ResultDTO();
+            result.error     = true;
 
-            if (lastMessagesList.Count > 0)
+            try
             {
-                Satellites satellite = dataAccess.GetSatelliteById(lastMessagesList[0].satelite_id);
-                if (satellite != null)
+                List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages((int)Constant.NumberRow.ONE_ROW);
+
+                if (lastMessagesList.Count > 0)
                 {
-                    SatelliteMessageDTO satelliteMessage = new SatelliteMessageDTO()
+                    Satellites satellite = dataAccess.GetSatelliteById(lastMessagesList[0].satelite_id);
+                    if (satellite != null)
                     {
-                        name     = satellite.name,
-                        distance = lastMessagesList[0].distances,
-                        message  = lastMessagesList[0].message_array.Split(',')
-                    };
+                        SatelliteMessageDTO satelliteMessage = new SatelliteMessageDTO()
+                        {
+                            name     = satellite.name,
+                            distance = lastMessagesList[0].distances,
+                            message  = lastMessagesList[0].message_array.Split(',')
+                        };
 
-                    result = FindMessageLocation(satelliteMessage);
+                        result = FindMessageLocation(satelliteMessage);
 
-                    //VERIFICAR ESTOOOOO COMO ACTUALIZAAR LOS MENSAJES GUARDADOS
-                    ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
-                    dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
+                        //VERIFICAR ESTOOOOO COMO ACTUALIZAAR LOS MENSAJES GUARDADOS
+                        ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
+                        //dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
+                    }
                 }
-                else
-                    result.error = true;
             }
-            else
+            catch (Exception)
             {
-                //consultamos la tabla response
                 result.error = true;
             }
-
+                       
             return result;
         }
 
@@ -129,19 +139,19 @@ namespace QuasarFireOperation.Services
                     result.response.message  = message;
                     result.response.position = location;
                     result.error             = false;
-                    result.statusResponse    = Constant.StatusResponse.SUCCESS_SENT;
+                    result.statusResponse    = (int)Constant.StatusResponse.SUCCESS_SENT;
                 }
                 else
                 {
                     result.error          = true;
-                    result.statusResponse = Constant.StatusResponse.ERROR_LOCATION;
+                    result.statusResponse = (int)Constant.StatusResponse.ERROR_LOCATION;
                 }
 
             }
             else
             {
                 result.error = true;
-                result.statusResponse = Constant.StatusResponse.ERROR_LOCATION;
+                result.statusResponse = (int)Constant.StatusResponse.ERROR_LOCATION;
             }
             return result;
         }
@@ -152,7 +162,7 @@ namespace QuasarFireOperation.Services
             string msgReturn    = String.Empty;
             string[] msgCompare = messages; //tomo el tamaño del mensaje que recibo
 
-            List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages(2);
+            List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages((int)Constant.NumberRow.TWO_ROWS);
 
             if (lastMessagesList.Count > 1)
             {
@@ -174,12 +184,12 @@ namespace QuasarFireOperation.Services
 
             if (infoFirstSatellite != null)
             {
-                List<InformationMessageSatelliteDTO> infoAllSatelliteList = dataAccess.GetLastSatellite(2, infoFirstSatellite.id);
+                List<InformationMessageSatelliteDTO> infoAllSatelliteList = dataAccess.GetLastSatellite((int)Constant.NumberRow.TWO_ROWS, infoFirstSatellite.id);
                 infoAllSatelliteList.Add(infoFirstSatellite);
 
                 if (infoAllSatelliteList.Count == 3)
                 {
-                    shipPosition = UtilService.GetLocationByTrilateration(infoAllSatelliteList[0], infoAllSatelliteList[1], infoAllSatelliteList[2]);                    
+                    shipPosition = UtilService.GetLocationByTrilateration(infoAllSatelliteList[(int)Constant.NumberSatellite.ONE], infoAllSatelliteList[(int)Constant.NumberSatellite.TWO], infoAllSatelliteList[(int)Constant.NumberSatellite.THREE]);
                 }
             }
 
@@ -191,7 +201,7 @@ namespace QuasarFireOperation.Services
         {
             foreach (var item in requestSatelliteList)
             {
-                if (item.distance == null)
+                if (item.distance == 0)
                     return false;
                 if (item.message == null)
                     return false;                

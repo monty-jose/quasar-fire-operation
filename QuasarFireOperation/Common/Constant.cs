@@ -7,12 +7,28 @@ namespace QuasarFireOperation.Common
 {
     public class Constant
     {
-        public struct StatusResponse
+        public enum StatusResponse
         {
-            public const int SUCCESS_SENT   = 1;
-            public const int ERROR_LOCATION = 2;
-            public const int ERROR_MESSAGE  = 3;
-            public const int ERROR_PETICION = 3;
+            SUCCESS_SENT   = 1,
+            ERROR_LOCATION,
+            ERROR_MESSAGE,
+            ERROR_PETICION
         }
+
+        public enum NumberRow
+        { 
+            ONE_ROW = 1,
+            TWO_ROWS,
+            THREE_ROWS
+        }
+
+        public enum NumberSatellite
+        { 
+            ONE,
+            TWO,
+            THREE
+        }
+
+
     }
 }

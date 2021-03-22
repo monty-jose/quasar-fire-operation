@@ -82,16 +82,13 @@ namespace QuasarFireOperation.Repository
                     }
                     reader.Dispose();
                 }
+                conn.Close();
             }
             catch (System.Exception ex)
             {
                 conn.Close();
             }
-            finally
-            {
-                conn.Close();
-            }
-
+            
             return lastMenssages;
         }
                 
@@ -175,13 +172,9 @@ namespace QuasarFireOperation.Repository
                     }
                     reader.Dispose();
                 }
+                conn.Close();
             }
             catch (System.Exception ex)
-            {
-                conn.Close();
-                throw;
-            }
-            finally
             {
                 conn.Close();
             }
@@ -224,15 +217,11 @@ namespace QuasarFireOperation.Repository
                     }
                     reader.Dispose();
                 }
+                conn.Close();
             }
             catch (System.Exception ex)
             {
-                conn.Close();
-                throw;
-            }
-            finally
-            {
-                conn.Close();
+                conn.Close();              
             }
 
             return informationSatelliteList;

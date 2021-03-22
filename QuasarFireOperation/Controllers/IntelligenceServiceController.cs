@@ -32,17 +32,9 @@ namespace QuasarFireOperation.Controllers
                     {
                         return Ok(data.response);
                     }
-                    else
-                    {
-                        return NotFound();
-                    }
                 }
-                else
-                    return NotFound();
-            }
-            else
-                return NotFound();
-
+            }            
+            return NotFound();
         }
 
         [HttpPost("topSecret_Split/{satellite_name}")]
@@ -55,14 +47,10 @@ namespace QuasarFireOperation.Controllers
                 if (!data.error)
                 {
                     return Ok(data.response);
-                }
-                else
-                {
-                    return NotFound();
-                }
+                }                
             }
-            else
-                return NotFound();
+            
+            return NotFound();
         }
         
         [HttpGet("topSecret_Split")]
