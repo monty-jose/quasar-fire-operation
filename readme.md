@@ -8,15 +8,17 @@
 
 ## Empezando
 
-- ejecuta  `git clone https://github.com/monty-jose/quasar-fire-operation.git`
+- Ejecuta  `git clone https://github.com/monty-jose/quasar-fire-operation.git`
 
+## Visual Studio
+
+- En la solucion ejecutar Restore NuGet Packages
 
 ## Sql Data Base
 
-There is a `SqlDb/QuasarFireOperation.sql` for SQLServer:
+En el repositorio encontraremos `SqlDb/QuasarFireOperation.sql` para SQLServer:
 
 - Ejecutar script en una Nueva Query desde SQL Server Managment Studio o otro editor
-
 
 ## Servicios
 
@@ -25,7 +27,3 @@ POST: /topSecret
 POST: /topSecret_Split/{satellite_name}
 
 GET: /topSecret_Split
-
-## Swagger URL
-
-- `http://localhost/swagger`
