@@ -14,9 +14,9 @@ namespace QuasarFireOperation.Services
 {
     public class OperationsService
     {
-        private readonly DataAccessRepository dataAccess;
+        private readonly DataAccess dataAccess;
 
-        public OperationsService(DataAccessRepository dataAccess)
+        public OperationsService(DataAccess dataAccess)
         {
             this.dataAccess =  dataAccess;
         }

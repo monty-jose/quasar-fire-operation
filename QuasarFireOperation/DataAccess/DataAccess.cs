@@ -12,11 +12,11 @@ using System.Threading.Tasks;
 
 namespace QuasarFireOperation.Repository
 {
-    public class DataAccessRepository
+    public class DataAccess
     {
         private readonly AppDbContext _context;
 
-        public DataAccessRepository(AppDbContext context)
+        public DataAccess(AppDbContext context)
         {
             this._context = context;
         }

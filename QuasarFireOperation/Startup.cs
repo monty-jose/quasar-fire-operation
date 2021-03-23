@@ -25,7 +25,7 @@ namespace QuasarFireOperation
             services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnectionString")));
             services.AddControllers();
             services.AddScoped<OperationsService>();
-            services.AddScoped<DataAccessRepository>();
+            services.AddScoped<DataAccess>();
 
             //Repositories
             //services.AddScoped<IMessagesRepository, MessagesRepository>();

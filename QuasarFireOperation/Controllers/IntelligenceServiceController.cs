@@ -69,12 +69,5 @@ namespace QuasarFireOperation.Controllers
                 return NotFound("No hay suficiente infromación.");
             }
         }
-
-        [HttpGet("GetTest")]
-        public string GetTest()
-        {
-            return "Hola entro";
-        }
-
     }
 }
