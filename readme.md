@@ -8,11 +8,11 @@
 
 ## Empezando
 
-- Ejecuta  `git clone https://github.com/monty-jose/quasar-fire-operation.git`
+- Ejecutar  `git clone https://github.com/monty-jose/quasar-fire-operation.git`
 
 ## Visual Studio
 
-- En la solucion ejecutar Restore NuGet Packages
+- En la solucion de la aplicacion ejecutar Restore NuGet Packages
 
 ## Sql Data Base
 
