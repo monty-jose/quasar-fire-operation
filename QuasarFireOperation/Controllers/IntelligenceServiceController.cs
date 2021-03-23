@@ -24,7 +24,7 @@ namespace QuasarFireOperation.Controllers
         {
             if (requestSatelliteList != null)
             {
-                if (operationsService.IsValidRequest(requestSatelliteList.satellites))
+                if (operationsService.IsValidRequestList(requestSatelliteList.satellites))
                 {
                     ResultDTO data = operationsService.TopSecretResponse(requestSatelliteList.satellites);
 
@@ -42,14 +42,16 @@ namespace QuasarFireOperation.Controllers
         {
             if (requestSatellite != null && !String.IsNullOrEmpty(satellite_name))
             {
-                ResultDTO data = operationsService.TopSecretSplitPost(requestSatellite, satellite_name);
-
-                if (!data.error)
+                if (operationsService.IsValidRequest(requestSatellite))
                 {
-                    return Ok(data.response);
-                }                
-            }
-            
+                    ResultDTO data = operationsService.TopSecretSplitPost(requestSatellite, satellite_name);
+
+                    if (!data.error)
+                    {
+                        return Ok();
+                    }
+                }               
+            }            
             return NotFound();
         }
         
@@ -64,7 +66,7 @@ namespace QuasarFireOperation.Controllers
             }
             else
             {
-                return NotFound();
+                return NotFound("No hay suficiente infromación.");
             }
         }
 

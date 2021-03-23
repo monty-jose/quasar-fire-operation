@@ -17,8 +17,8 @@ namespace QuasarFireOperation.Services
             double E = 2 * satelliteThree.y_position - 2 * satelliteTwo.y_position;
             double F = (Math.Pow(satelliteTwo.distance, 2) - Math.Pow(satelliteThree.distance, 2) - Math.Pow(satelliteTwo.x_position, 2) + Math.Pow(satelliteThree.x_position, 2) - Math.Pow(satelliteTwo.y_position, 2) + Math.Pow(satelliteThree.y_position, 2));
 
-            shipLocation.x = (C * E - F * B) / (E * A - B * D);
-            shipLocation.y = (C * D - A * F) / (B * D - A * E);
+            shipLocation.x = Math.Round(((C * E - F * B) / (E * A - B * D)),2);
+            shipLocation.y = Math.Round(((C * D - A * F) / (B * D - A * E)),2);
 
             return shipLocation;
         }
@@ -37,20 +37,20 @@ namespace QuasarFireOperation.Services
 
         public static string[] WordsCompare(string[] msgOne, string[] msgTwo)
         {
-            int arrayLength = msgOne.Length > msgTwo.Length ? msgOne.Length : msgTwo.Length; //tomamos el tamaño mas grande del array a comparar
+            string[] msgNew = new string[msgOne.Length];
 
-            //suponemos que el tamañano de los array son iguales
-            string[] msgNew = new string[arrayLength];
-
-            for (int i = 0; i < msgOne.Length; i++)
+            if (msgOne.Length == msgTwo.Length)
             {
-                if (!String.IsNullOrEmpty(msgOne[i]))
+                for (int i = 0; i < msgOne.Length; i++)
                 {
-                    msgNew[i] = msgOne[i].Trim();
-                }
-                else
-                {
-                    msgNew[i] = msgTwo[i].Trim();
+                    if (!String.IsNullOrEmpty(msgOne[i]))
+                    {
+                        msgNew[i] = msgOne[i].Trim();
+                    }
+                    else
+                    {
+                        msgNew[i] = msgTwo[i].Trim();
+                    }
                 }
             }
 

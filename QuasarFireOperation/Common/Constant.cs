@@ -22,7 +22,7 @@ namespace QuasarFireOperation.Common
             THREE_ROWS
         }
 
-        public enum NumberSatellite
+        public enum SatelliteNumber
         { 
             ONE,
             TWO,

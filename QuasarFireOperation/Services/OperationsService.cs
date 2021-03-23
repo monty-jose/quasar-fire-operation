@@ -26,32 +26,23 @@ namespace QuasarFireOperation.Services
             ResultDTO result = new ResultDTO();
 
             try
-            {
-                if (IsValidRequest(requestSatelliteList))
+            {                
+                List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(requestSatelliteList);
+
+                if (messagesSecretIdList.Count == 3)
                 {
-                    List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(requestSatelliteList);
-
-                    if (messagesSecretIdList.Count == 3)
-                    {
-                        result = FindMessageLocation(requestSatelliteList[0]);
-                    }
-                    else
-                    {
-                        result.error = true;
-                        result.statusResponse = (int)Constant.StatusResponse.ERROR_PETICION;
-                    }
-
-                    ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
-                    dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
-
+                    result = FindMessageLocation(requestSatelliteList[(int)Constant.SatelliteNumber.ONE]);
                 }
                 else
                 {
                     result.error = true;
+                    result.statusResponse = (int)Constant.StatusResponse.ERROR_PETICION;
                 }
 
+                ResponseEntity responseEntity = dataAccess.SaveResponseEntity(result.response.position, result.response.message, result.statusResponse);
+                dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 result.error = true;
             }
@@ -75,7 +66,6 @@ namespace QuasarFireOperation.Services
 
                 List<MessagesSecret> messagesSecretIdList = dataAccess.SaveMessagesList(satelliteMessageList);
                 result.error = false;
-
             }
             catch (Exception)
             {
@@ -92,29 +82,26 @@ namespace QuasarFireOperation.Services
 
             try
             {
-                List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages((int)Constant.NumberRow.ONE_ROW);
+                List<MessageDTO> lastMessagesList = dataAccess.GetLastMessages((int)Constant.NumberRow.THREE_ROWS);
 
-                if (lastMessagesList.Count > 0)
+                if (lastMessagesList.Count == 3)
                 {
-                    Satellites satellite = dataAccess.GetSatelliteById(lastMessagesList[0].satelite_id);
+                    Satellites satellite = dataAccess.GetSatelliteById(lastMessagesList[(int)Constant.SatelliteNumber.THREE].satelite_id);
                     if (satellite != null)
                     {
                         SatelliteMessageDTO satelliteMessage = new SatelliteMessageDTO()
                         {
                             name     = satellite.name,
-                            distance = lastMessagesList[0].distances,
-                            message  = lastMessagesList[0].message_array.Split(',')
+                            distance = lastMessagesList[(int)Constant.SatelliteNumber.THREE].distances,
+                            message  = lastMessagesList[(int)Constant.SatelliteNumber.THREE].message_array.Split(',')
                         };
 
                         result = FindMessageLocation(satelliteMessage);
-
-                        //VERIFICAR ESTOOOOO COMO ACTUALIZAAR LOS MENSAJES GUARDADOS
-                        ResponseEntity responseEntity = dataAccess.SaveResponse(result.response.position, result.response.message, result.statusResponse);
-                        //dataAccess.UpdateMessagesProcess(messagesSecretIdList, responseEntity.id);
+                        ResponseEntity responseEntity = dataAccess.SaveResponseEntity(result.response.position, result.response.message, result.statusResponse);                        
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 result.error = true;
             }
@@ -122,9 +109,28 @@ namespace QuasarFireOperation.Services
             return result;
         }
 
+        public void UpdateSecretList(List<MessageDTO> lastMessagesList, int idResponse)
+        {
+            List<MessagesSecret> msgSecretList = new List<MessagesSecret>();
+
+            foreach (var item in lastMessagesList)
+            {
+                var message = new MessagesSecret()
+                {
+                    id = item.id
+                };
+                msgSecretList.Add(message);
+            }
+            dataAccess.UpdateMessagesProcess(msgSecretList, idResponse);
+        }
+
         public ResultDTO FindMessageLocation(SatelliteMessageDTO satelliteMessage)
         {
             ResultDTO result = new ResultDTO();
+            result.response  = new ResponseDTO();
+
+            result.response.message  = String.Empty;
+            result.response.position = null;
 
             string[] firstMessage = satelliteMessage.message;
             string message        = GetMessage(firstMessage);
@@ -135,7 +141,6 @@ namespace QuasarFireOperation.Services
 
                 if (location != null)
                 {
-                    result.response          = new ResponseDTO();
                     result.response.message  = message;
                     result.response.position = location;
                     result.error             = false;
@@ -151,7 +156,7 @@ namespace QuasarFireOperation.Services
             else
             {
                 result.error = true;
-                result.statusResponse = (int)Constant.StatusResponse.ERROR_LOCATION;
+                result.statusResponse = (int)Constant.StatusResponse.ERROR_MESSAGE;
             }
             return result;
         }
@@ -184,12 +189,12 @@ namespace QuasarFireOperation.Services
 
             if (infoFirstSatellite != null)
             {
-                List<InformationMessageSatelliteDTO> infoAllSatelliteList = dataAccess.GetLastSatellite((int)Constant.NumberRow.TWO_ROWS, infoFirstSatellite.id);
+                List<InformationMessageSatelliteDTO> infoAllSatelliteList = dataAccess.GetLastSatellite(infoFirstSatellite.id);
                 infoAllSatelliteList.Add(infoFirstSatellite);
 
                 if (infoAllSatelliteList.Count == 3)
                 {
-                    shipPosition = UtilService.GetLocationByTrilateration(infoAllSatelliteList[(int)Constant.NumberSatellite.ONE], infoAllSatelliteList[(int)Constant.NumberSatellite.TWO], infoAllSatelliteList[(int)Constant.NumberSatellite.THREE]);
+                    shipPosition = UtilService.GetLocationByTrilateration(infoAllSatelliteList[(int)Constant.SatelliteNumber.ONE], infoAllSatelliteList[(int)Constant.SatelliteNumber.TWO], infoAllSatelliteList[(int)Constant.SatelliteNumber.THREE]);
                 }
             }
 
@@ -197,15 +202,27 @@ namespace QuasarFireOperation.Services
 
         }
 
-        public bool IsValidRequest(List<SatelliteMessageDTO> requestSatelliteList)
+        public bool IsValidRequestList(List<SatelliteMessageDTO> requestSatelliteList)
         {
             foreach (var item in requestSatelliteList)
             {
+                if (String.IsNullOrEmpty(item.name))
+                    return false;
                 if (item.distance == 0)
                     return false;
                 if (item.message == null)
                     return false;                
             }
+            return true;
+        }
+
+        public bool IsValidRequest(TopSecretSplitRequestDTO requestSatellite)
+        {            
+            if (requestSatellite.distance == 0)
+                return false;
+            if (requestSatellite.message == null)
+                return false;
+            
             return true;
         }
     }

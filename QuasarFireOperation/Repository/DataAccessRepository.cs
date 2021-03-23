@@ -26,20 +26,17 @@ namespace QuasarFireOperation.Repository
             List<MessagesSecret> messagesList = new List<MessagesSecret>();
 
             foreach (SatelliteMessageDTO satelliteMenssage in satellites)
-            {
-                //buscar en bd el id del satelite
+            {                
                 Satellites satellite = this.GetSatelliteByName(satelliteMenssage.name);
 
                 var msg = new MessagesSecret()
                 {
                     satelite_id  = satellite.id,
                     distance     = satelliteMenssage.distance,
-                    message      = UtilService.ArrayToString(satelliteMenssage.message),
+                    message      = UtilService.ArrayToString(satelliteMenssage.message).ToLower(),
                     process      = 0,
                     date_process = DateTime.Now
                 };
-
-                // guardo el mensaje en bs de datos y retorno el id para despues actualizar el campo process
                 var entity = this.SaveMessagesSecret(msg);
 
                 messagesList.Add(msg);
@@ -60,8 +57,7 @@ namespace QuasarFireOperation.Repository
                 using (var command = conn.CreateCommand())
                 {
                     string query = "SELECT TOP "+ countMessage + " M.id, satelite_id, distance, message " +
-                                    "FROM MESSAGES_SECRET M  " +
-                                    "WHERE process = 0 " +
+                                    "FROM MESSAGES_SECRET M  " +                                    
                                     "ORDER BY M.id DESC";
                     command.CommandText = query;
                     DbDataReader reader = command.ExecuteReader();
@@ -111,7 +107,7 @@ namespace QuasarFireOperation.Repository
             return messageSecret;
         }
 
-        public ResponseEntity SaveResponse(PositionDTO position, string _message, int _status_id)
+        public ResponseEntity SaveResponseEntity(PositionDTO position, string _message, int _status_id)
         {
             ResponseEntity response = new ResponseEntity()
             {
@@ -152,8 +148,8 @@ namespace QuasarFireOperation.Repository
                 {
                     string query = "SELECT TOP 1 S.id, distance, S.position_x, S.position_y  " +
                                     "FROM MESSAGES_SECRET M INNER JOIN SATELLITES S ON (S.id=M.satelite_id) " +
-                                    "WHERE distance = " + distance + " AND process = 0" +
-                                    "ORDER BY date_process DESC";
+                                    "WHERE distance = " + distance + " " +
+                                    "ORDER BY M.id DESC";
                     command.CommandText = query;
                     DbDataReader reader = command.ExecuteReader();
 
@@ -182,7 +178,7 @@ namespace QuasarFireOperation.Repository
             return informationMessageSatellite;
         }
 
-        public List<InformationMessageSatelliteDTO> GetLastSatellite(int countMessage, int satelliteId)
+        public List<InformationMessageSatelliteDTO> GetLastSatellite(int satelliteId)
         {
             List<InformationMessageSatelliteDTO> informationSatelliteList = new List<InformationMessageSatelliteDTO>();
 
@@ -192,10 +188,13 @@ namespace QuasarFireOperation.Repository
                 conn.Open();
                 using (var command = conn.CreateCommand())
                 {
-                    string query = "SELECT TOP "+ countMessage + " S.id, distance, S.position_x, S.position_y  " +
+                    string query = "SELECT S.id, distance, S.position_x, S.position_y  " +
                                     "FROM MESSAGES_SECRET M INNER JOIN SATELLITES S ON (S.id=M.satelite_id) " +
-                                    "WHERE satelite_id != " + satelliteId + " AND process = 0" +
-                                    "ORDER BY date_process DESC";
+                                    "WHERE satelite_id != " + satelliteId + 
+                                    " AND  M.id  in (SELECT Max(id) " +
+                                                    "FROM MESSAGES_SECRET M " +
+                                                    "GROUP BY satelite_id) " +
+                                    "ORDER BY M.id DESC";
 
                     command.CommandText = query;
                     DbDataReader reader = command.ExecuteReader();
